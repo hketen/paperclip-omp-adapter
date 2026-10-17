@@ -1,6 +1,6 @@
 {
   "name": "@hketen/paperclip-omp-adapter",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "External Paperclip adapter for the Oh My Pi coding-agent CLI",
   "type": "module",
   "license": "MIT",
