@@ -14,7 +14,7 @@ This adapter integrates OMP into Paperclip as an external adapter module (`omp_l
 
 | Feature | Paperclip Integration | OMP CLI Mapping |
 |---|---|---|
-| Model Discovery | Dynamic model list and badge updates | `omp models --json` and `omp models refresh --json` |
+| Model Discovery | Dynamic model list and badge updates; configured roles (`@default`, `@slow`, …) listed first | `omp models --json`, `omp models refresh --json`, `omp config get modelRoles --json` |
 | Execution Mode | Headless execution per heartbeat run | `omp --mode json -p` |
 | Session Resume | Resumes conversation across runs | `--session-dir <dir> --resume <id>` |
 | Multi-Workspace | Multi-workspace context synchronization | `--add-dir <path>` (repeatable) |
@@ -72,7 +72,7 @@ The adapter exposes the following configuration schema fields under an agent's a
 
 ### Core Execution
 - `command` (string): Path to the OMP executable. Default: `omp`.
-- `model` (string): Default model selector (e.g., `anthropic/claude-3-7-sonnet`, `openai/gpt-4o`).
+- `model` (string): Default model selector (e.g., `anthropic/claude-3-7-sonnet`, `openai/gpt-4o`) or an OMP role alias (`@default`, `@slow`, `@smol`, …) that follows the role's configured model and thinking level. A `:level` suffix (e.g. `@slow:high`) sets the thinking level inline.
 - `thinking` (string): Reasoning level (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`, `auto`).
 - `printThoughts` (boolean): Stream thinking blocks into the Paperclip transcript (`--print-thoughts`). Default: `true`; `false` passes `--hide-thinking`. Thinking only appears when the selected model actually emits reasoning deltas.
 - `profile` (string): Named OMP profile to activate (`OMP_PROFILE`).

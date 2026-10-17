@@ -17,7 +17,7 @@ Don't use when:
 - OMP is unavailable in the selected execution environment
 
 Core fields:
-- model: exact OMP selector (provider/model); free text is accepted for custom providers
+- model: exact OMP selector (provider/model) or role alias (@default, @slow, @smol, …; optional :level suffix such as @slow:high); free text is accepted for custom providers
 - command: OMP executable, default omp
 - cwd: fallback working directory when Paperclip has no execution workspace
 - profile / agentDir: select local OMP auth, settings, sessions, models.yml, and caches; remote runs upload sanitized configuration only

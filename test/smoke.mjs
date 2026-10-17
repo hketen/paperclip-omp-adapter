@@ -163,6 +163,10 @@ if (args[0] === "models") {
   console.log(JSON.stringify({ models: [{ provider: "fake-provider", id: "fake-model", selector: "fake-provider/fake-model", name: "Fake model" }] }));
   process.exit(0);
 }
+if (args[0] === "config" && args[1] === "get" && args[2] === "modelRoles") {
+  console.log(JSON.stringify({ key: "modelRoles", value: { slow: "fake-provider/fake-model:xhigh", image: "fake-provider/fake-image", default: "fake-provider/fake-model:high" }, type: "record" }));
+  process.exit(0);
+}
 if (args[0] === "usage") {
   console.log(JSON.stringify({ generatedAt: 1, reports: [{ provider: "fake-provider", fetchedAt: 1, limits: [{ id: "5h", label: "Five hour", scope: {}, window: { id: "5h", label: "5 Hour", resetsAt: 1789800000000 }, amount: { used: 25, limit: 100, unit: "percent" }, status: "ok", notes: ["sample"] }] }], accountsWithoutUsage: [], disabledCredentials: [] }));
   process.exit(0);
@@ -246,8 +250,16 @@ await fs.chmod(fakeOmp, 0o755);
 const previousOmpCommand = process.env.PAPERCLIP_OMP_COMMAND;
 process.env.PAPERCLIP_OMP_COMMAND = fakeOmp;
 const advertisedAdapter = createServerAdapter();
-assert.equal((await advertisedAdapter.listModels()).length, 1);
-assert.equal(advertisedAdapter.models.length, 1, "dynamic model discovery must update the static model summary");
+assert.deepEqual(
+  (await advertisedAdapter.listModels()).map((model) => model.id),
+  ["@default", "@slow", "fake-provider/fake-model"],
+  "chat roles lead the model list, default first; catalog-kind roles are dropped",
+);
+assert.equal(advertisedAdapter.models.length, 3, "dynamic model discovery must update the static model summary");
+const fakeSchema = await advertisedAdapter.getConfigSchema();
+const fakeField = (key) => fakeSchema.fields.find((field) => field.key === key).options.map((option) => option.value);
+assert.deepEqual(fakeField("model"), ["@default", "@slow", "fake-provider/fake-model"]);
+assert.deepEqual(fakeField("slowModel"), ["fake-provider/fake-model"], "role overrides must not offer role aliases");
 if (previousOmpCommand === undefined) delete process.env.PAPERCLIP_OMP_COMMAND;
 else process.env.PAPERCLIP_OMP_COMMAND = previousOmpCommand;
 

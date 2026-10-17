@@ -271,6 +271,8 @@ export async function getConfigSchema(): Promise<AdapterConfigSchema> {
     profileOptions(),
   ]);
   const options = modelOptions(models);
+  // `--slow @slow` would point a role at itself, so role overrides list concrete models only.
+  const concreteOptions = options.filter((option) => !option.value.startsWith("@"));
   let defaultProfile = "";
   try {
     defaultProfile = resolveOmpProfile({}).profile ?? "";
@@ -281,7 +283,7 @@ export async function getConfigSchema(): Promise<AdapterConfigSchema> {
     key,
     label,
     type: "combobox",
-    options,
+    options: concreteOptions,
     hint,
     group: "Models",
   });
@@ -294,7 +296,7 @@ export async function getConfigSchema(): Promise<AdapterConfigSchema> {
         type: "combobox",
         options,
         ...(detected ? { default: detected.model } : {}),
-        hint: "Exact OMP selector (provider/model). Free text is accepted for custom or extension providers.",
+        hint: "Exact OMP selector (provider/model) or role alias such as @default or @slow. Free text is accepted for custom or extension providers.",
         group: "Models",
       },
       roleField("smolModel", "Small/fast model", "Optional selector passed to OMP --smol for cheap auxiliary work."),

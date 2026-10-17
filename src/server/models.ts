@@ -177,6 +177,22 @@ export function parseOmpModelsOutput(stdout: string): AdapterModel[] {
   return models;
 }
 
+// Catalog-kind roles select non-chat models, so they cannot drive a run.
+const NON_CHAT_ROLES: Record<string, true> = { image: true, web: true, speech: true, dictation: true };
+
+/** Turn `omp config get modelRoles --json` into `@role` selectors, default first. */
+export function parseOmpModelRolesOutput(stdout: string): AdapterModel[] {
+  const entries = Object.entries(objectValue(modelEnvelope(stdout)?.value)).flatMap(([role, value]) => {
+    const target = nonEmptyString(value);
+    return target && !Object.hasOwn(NON_CHAT_ROLES, role) ? [[role, target] as const] : [];
+  });
+  entries.sort(([a], [b]) => Number(b === "default") - Number(a === "default"));
+  return entries.map(([role, target]) => ({
+    id: `@${role}`,
+    label: `Role: ${role.charAt(0).toUpperCase()}${role.slice(1)} (${target})`,
+  }));
+}
+
 function buildArgs(input: ResolvedDiscovery): string[] {
   const args = ["models"];
   if (input.refresh) args.push("refresh");
@@ -196,18 +212,20 @@ export async function discoverOmpModels(input: DiscoveryInput = {}): Promise<Ada
   const cached = modelCache.get(key);
   if (!resolved.refresh && cached && cached.expiresAt > now) return cached.models;
 
-  const result = await runChildProcess(
-    `omp-models-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    resolved.command,
-    buildArgs(resolved),
-    {
-      cwd: resolved.cwd,
-      env: resolved.env,
-      timeoutSec: MODEL_DISCOVERY_TIMEOUT_SEC,
-      graceSec: 3,
-      onLog: async () => {},
-    },
-  );
+  const processOptions = {
+    cwd: resolved.cwd,
+    env: resolved.env,
+    timeoutSec: MODEL_DISCOVERY_TIMEOUT_SEC,
+    graceSec: 3,
+    onLog: async () => {},
+  };
+  const runId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const [result, rolesResult] = await Promise.all([
+    runChildProcess(`omp-models-${runId}`, resolved.command, buildArgs(resolved), processOptions),
+    // Roles are optional decoration; a failed probe must not hide the model list.
+    runChildProcess(`omp-roles-${runId}`, resolved.command, ["config", "get", "modelRoles", "--json"], processOptions)
+      .catch(() => null),
+  ]);
 
   const invocation = resolved.refresh ? "omp models refresh --json" : "omp models --json";
   if (result.timedOut) throw new Error(`\`${invocation}\` timed out after ${MODEL_DISCOVERY_TIMEOUT_SEC}s.`);
@@ -219,7 +237,10 @@ export async function discoverOmpModels(input: DiscoveryInput = {}): Promise<Ada
     throw new Error(`\`${invocation}\` returned an invalid JSON envelope.`);
   }
 
-  const models = parseOmpModelsOutput(result.stdout);
+  const roles = rolesResult && !rolesResult.timedOut && rolesResult.exitCode === 0
+    ? parseOmpModelRolesOutput(rolesResult.stdout)
+    : [];
+  const models = [...roles, ...parseOmpModelsOutput(result.stdout)];
   modelCache.set(key, { expiresAt: now + MODEL_CACHE_TTL_MS, models });
   return models;
 }
