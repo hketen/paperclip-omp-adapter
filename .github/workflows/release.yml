@@ -68,7 +68,7 @@ jobs:
       - name: Resolve npm publication state
         id: npm-state
         env:
-          PACKAGE_NAME: "@zhafron/paperclip-omp-adapter"
+          PACKAGE_NAME: "@hketen/paperclip-omp-adapter"
           VERSION: ${{ github.ref_name }}
         run: |
           VERSION_NUM="${VERSION#v}"
@@ -83,11 +83,10 @@ jobs:
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # Authenticates through npm trusted publishing (OIDC, id-token: write); no NPM_TOKEN.
       - name: Publish to npm
         if: steps.npm-state.outputs.publish == 'true'
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish GitHub Release
         env:

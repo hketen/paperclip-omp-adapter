@@ -1,10 +1,12 @@
 # Paperclip OMP Adapter
 
-[![CI](https://github.com/tickernelz/paperclip-omp-adapter/actions/workflows/ci.yml/badge.svg)](https://github.com/tickernelz/paperclip-omp-adapter/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/%40zhafron%2Fpaperclip-omp-adapter.svg)](https://www.npmjs.com/package/@zhafron/paperclip-omp-adapter)
-[![license](https://img.shields.io/npm/l/%40zhafron%2Fpaperclip-omp-adapter.svg)](LICENSE)
+[![CI](https://github.com/hketen/paperclip-omp-adapter/actions/workflows/validate.yml/badge.svg)](https://github.com/hketen/paperclip-omp-adapter/actions/workflows/validate.yml)
+[![npm](https://img.shields.io/npm/v/%40hketen%2Fpaperclip-omp-adapter.svg)](https://www.npmjs.com/package/@hketen/paperclip-omp-adapter)
+[![license](https://img.shields.io/npm/l/%40hketen%2Fpaperclip-omp-adapter.svg)](LICENSE)
 
 External Paperclip adapter for running Oh My Pi (OMP) CLI in headless mode with native model discovery, custom providers, resumable local sessions, skills synchronization, multi-workspace support, and structured transcripts.
+
+Fork of [tickernelz/paperclip-omp-adapter](https://github.com/tickernelz/paperclip-omp-adapter).
 
 ## Overview
 
@@ -40,10 +42,10 @@ npm install -g @oh-my-pi/pi-coding-agent@latest
 
 ### Via Paperclip CLI
 
-In a running Paperclip instance, install the adapter using the official package:
+In a running Paperclip instance, install the adapter from npm:
 
 ```bash
-paperclipai adapter install --payload-json '{"packageName":"@zhafron/paperclip-omp-adapter","version":"0.2.3"}' --json
+paperclipai adapter install --payload-json '{"packageName":"@hketen/paperclip-omp-adapter","version":"0.8.0"}' --json
 ```
 
 To upgrade an existing installation:
@@ -106,7 +108,7 @@ The adapter exposes the following configuration schema fields under an agent's a
 ### Building and Testing
 
 ```bash
-git clone https://github.com/tickernelz/paperclip-omp-adapter.git
+git clone https://github.com/hketen/paperclip-omp-adapter.git
 cd paperclip-omp-adapter
 npm install
 npm run typecheck
@@ -119,7 +121,7 @@ Pack the local repository and install the tarball directly into your Paperclip i
 
 ```bash
 TARBALL=$(npm pack)
-paperclipai adapter install --payload-json "{\"packageName\":\"$PWD/$TARBALL\",\"version\":\"0.2.3\"}" --json
+paperclipai adapter install --payload-json "{\"packageName\":\"$PWD/$TARBALL\",\"version\":\"0.8.0\"}" --json
 ```
 
 ## License
